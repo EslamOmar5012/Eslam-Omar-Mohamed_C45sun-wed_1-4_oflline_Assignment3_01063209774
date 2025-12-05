@@ -5,6 +5,8 @@ const http = require("node:http");
 //path for json file
 const usersDataPath = path.resolve("./users.json");
 
+const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 //red json file function
 const makeResANDUpdateFile = async (operation, res, inputData = undefined) => {
   try {
@@ -43,6 +45,17 @@ const addUser = (res, data, inputData = undefined) => {
     resHandled(res, 400, { message: "Data format isn't right." });
     return;
   }
+
+  if (age < 13 || age > 90) {
+    resHandled(res, 401, { message: "Please Enter age between 13 and 90" });
+    return;
+  }
+
+  if (!pattern.test(email)) {
+    resHandled(res, 401, { message: "Please Enter right Email format" });
+    return;
+  }
+
   const checkisUserFound = data.find((el) => el?.email === email);
 
   if (checkisUserFound) {
@@ -73,6 +86,19 @@ const editUser = (res, data, inputData) => {
 
   if (!userExist) {
     resHandled(res, 404, { message: "user ID not found." });
+    return;
+  }
+
+  if (
+    dataToChangeName === "age" &&
+    (dataToChangeValue < 13 || dataToChangeValue > 90)
+  ) {
+    resHandled(res, 401, { message: "Please Enter age between 13 and 90" });
+    return;
+  }
+
+  if (dataToChangeName === "email" && !pattern.test(dataToChangeValue)) {
+    resHandled(res, 401, { message: "Please Enter right Email format" });
     return;
   }
 
@@ -147,6 +173,10 @@ const server = http.createServer((req, res) => {
         });
 
         req.on("end", () => {
+          if (!body) {
+            resHandled(res, 400, { message: "Request body is empty" });
+            return;
+          }
           makeResANDUpdateFile(addUser, res, JSON.parse(body));
         });
         //Task 4
@@ -164,6 +194,10 @@ const server = http.createServer((req, res) => {
         });
 
         req.on("end", () => {
+          if (!body) {
+            resHandled(res, 400, { message: "Request body is empty" });
+            return;
+          }
           makeResANDUpdateFile(editUser, res, {
             id: +id,
             updatedData: JSON.parse(body),
