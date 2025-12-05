@@ -20,7 +20,7 @@ const makeResANDUpdateFile = async (operation, res, inputData = undefined) => {
 //write in json file function
 const writeFile = async (data) => {
   try {
-    fs.writeFile(usersDataPath, data, { encoding: "utf-8" });
+    await fs.writeFile(usersDataPath, data, { encoding: "utf-8" });
   } catch (e) {
     console.error(e);
   }
@@ -29,7 +29,7 @@ const writeFile = async (data) => {
 //handle res
 const resHandled = (res, code, content) => {
   res.writeHead(code, { "Content-Type": "application/json" });
-  res.write(JSON.stringify({ content }));
+  res.write(JSON.stringify(content));
   res.end();
 };
 
@@ -72,7 +72,7 @@ const editUser = (res, data, inputData) => {
   const userExist = data.find((el) => el?.id === id);
 
   if (!userExist) {
-    resHandled(res, 400, { message: "user ID not found." });
+    resHandled(res, 404, { message: "user ID not found." });
     return;
   }
 
@@ -180,7 +180,7 @@ const server = http.createServer((req, res) => {
       }
       break;
     default:
-      resHandled(404, { message: "Wrong Request" });
+      resHandled(res, 404, { message: "Wrong Request" });
   }
 });
 
@@ -191,7 +191,7 @@ server.listen(port, "127.0.0.1", () => {
 server.on("error", (error) => {
   if (error) return console.log(error);
   port++;
-  server.listen(port, "127,0,0,1", () => {
+  server.listen(port, "127.0.0.1", () => {
     console.log(`Server is opened on port ${port}`);
   });
 });
